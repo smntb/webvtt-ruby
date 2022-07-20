@@ -172,6 +172,10 @@ module WebVTT
         @start = Timestamp.new $1
         @end = Timestamp.new $3
         @style = Hash[$5.strip.split(" ").map{|s| s.split(":").map(&:strip) }]
+      elsif lines[0].match(/([0-9]{2}:[0-9]{2}\.[0-9]{3}) -+> ([0-9]{2}:[0-9]{2}\.[0-9]{3})(.*)/)
+        @start = Timestamp.new '00:'+ $1
+        @end = Timestamp.new '00:'+ $2
+        @style = Hash[$3.strip.split(" ").map{|s| s.split(":").map(&:strip) }]
       end
       @text = lines[1..-1].join("\n")
     end
