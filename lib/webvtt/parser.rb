@@ -160,8 +160,7 @@ module WebVTT
       return if lines[0] =~ /NOTE/
 
       if !lines[0].include?("-->")
-        @identifier = lines[0]
-        lines.shift
+        raise 'Time is missing against some of the index points.'
       end
 
       if lines.empty?
