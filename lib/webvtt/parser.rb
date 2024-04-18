@@ -160,7 +160,8 @@ module WebVTT
       return if lines[0] =~ /NOTE/
 
       if !lines[0].include?("-->")
-        raise 'Time is missing against some of the index points.'
+        @identifier = lines[0]
+        lines.shift
       end
 
       if lines.empty?
@@ -177,6 +178,12 @@ module WebVTT
         @style = Hash[$3.strip.split(" ").map{|s| s.split(":").map(&:strip) }]
       end
       @text = lines[1..-1].join("\n")
+    end
+
+    def validate_timestamps
+      return true if @content.include?('-->')
+
+      raise 'Time is missing against some of the index points.'
     end
   end
 
