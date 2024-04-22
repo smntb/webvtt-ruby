@@ -106,6 +106,8 @@ module WebVTT
   class Cue
     attr_accessor :identifier, :start, :end, :style, :text
 
+    TIMESTAMP_SEPARATOR = '-->'
+
     def initialize(cue = nil)
       @content = cue
       @style = {}
@@ -122,7 +124,7 @@ module WebVTT
       if @identifier
         res << "#{@identifier}\n"
       end
-      res << "#{@start} --> #{@end} #{@style.map{|k,v| "#{k}:#{v}"}.join(" ")}".strip + "\n"
+      res << "#{@start} #{TIMESTAMP_SEPARATOR} #{@end} #{@style.map{|k,v| "#{k}:#{v}"}.join(" ")}".strip + "\n"
       res << @text
 
       res
@@ -159,7 +161,9 @@ module WebVTT
       # it's a note, ignore
       return if lines[0] =~ /NOTE/
 
-      if !lines[0].include?("-->")
+      validate_timestamp
+
+      if !lines[0].include?(TIMESTAMP_SEPARATOR)
         @identifier = lines[0]
         lines.shift
       end
@@ -180,10 +184,10 @@ module WebVTT
       @text = lines[1..-1].join("\n")
     end
 
-    def validate_timestamps
-      return true if @content.include?('-->')
+    def validate_timestamp
+      return true if @content.include?(TIMESTAMP_SEPARATOR)
 
-      raise 'Time is missing against some of the index points.'
+      raise MissingTimestamp, 'Time is missing against some of the index points.'
     end
   end
 
