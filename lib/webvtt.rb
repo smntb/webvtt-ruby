@@ -6,6 +6,7 @@ end
 
 module WebVTT
   class MalformedFile < RuntimeError; end
+  class MissingTimestamp < MalformedFile; end
   class InputError < RuntimeError; end
 end
 
