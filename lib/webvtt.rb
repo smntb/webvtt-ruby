@@ -1,3 +1,4 @@
+$LOAD_PATH << "./lib/"
 # encoding: UTF-8
 
 if defined?(Encoding)
@@ -11,4 +12,9 @@ module WebVTT
 end
 
 require "webvtt/parser"
+require "webvtt/blob"
+require "webvtt/file"
+require "webvtt/cue"
+require "webvtt/annotation"
+require "webvtt/timestamp"
 require "webvtt/segmenter"
