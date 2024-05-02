@@ -45,7 +45,7 @@ module WebVTT
       cues.each do |cue|
         cue_parsed = Cue.parse(cue.strip)
         unless cue_parsed.text.nil?
-          @cues << parse_annotations(cue_parsed, @annotation_set)
+          @cues << parse_annotations(cue_parsed)
         end
       end
     end

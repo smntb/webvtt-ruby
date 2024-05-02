@@ -1,30 +1,29 @@
 module WebVTT
   class Annotation
-    attr_reader :references, :annotations, :text, :title, :creator, :date
+    attr_reader :references, :annotations, :text, :metadata
 
     ANNOTATION_REGEX = %r(<c\.\d+>[^<]+</c>).freeze
+    METADATA_REGEX = /annotation set (\w+:\s.+)\n/i.freeze
     REFERENCES_REGEX = %r(<annotation ref="\d+">.+</annotation>\n).freeze
 
     def initialize(content)
       @content = content
-      parse_metadata
-      @references = parse_references
+      @metadata = {}
       @annotations = []
+
+      parse_references
+      parse_metadata
     end
 
     def parse_metadata
-      @title = extract_metadata(/annotation set title:\s(.+)\n/i)
-      @creator = extract_metadata(/annotation set creator:\s(.+)\n/i)
-      @date = extract_metadata(/annotation set date:\s(.+)\n/i)
-    end
-
-    def extract_metadata(regex)
-      match = @content.match(regex)
-      match[1] if match
+      @content.scan(METADATA_REGEX).each do |data|
+        data = data[0].split(': ')
+        @metadata[data[0].strip] = data[1].strip
+      end
     end
 
     def parse_references
-      @content.scan(REFERENCES_REGEX).join("\n")
+      @references = @content.scan(REFERENCES_REGEX).join("\n")
     end
 
     def parse(text)
@@ -34,12 +33,12 @@ module WebVTT
 
     def extract_annotations
       @text.scan(ANNOTATION_REGEX).map do |annotation|
-        target = sanitize(annotation)
-        start_index = sanitize_speaker(@text).index(annotation)
-        end_index = start_index + target.length
+        text = sanitize(annotation)
+        start_index = strip_tags(@text).index(text)
+        end_index = start_index + text.length
         annotation_ref = parse_annotation_reference(annotation)
 
-        { target: target, start: start_index, end: end_index, annotation: annotation_ref }
+        { text: text, start: start_index, end: end_index, annotation: annotation_ref }
       end
     end
 
@@ -47,8 +46,8 @@ module WebVTT
       text.gsub(%r((<c\.\d+>|</c>)), '')
     end
 
-    def sanitize_speaker(text)
-      text.gsub(%r((<v>|</v>)), '')
+    def strip_tags(text)
+      text.gsub(%r((<v>|</v>|<c\.\d+>|</c>)), '')
     end
 
     def parse_annotation_reference(annotation)
