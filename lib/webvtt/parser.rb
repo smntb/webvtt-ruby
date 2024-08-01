@@ -8,7 +8,7 @@ module WebVTT
   end
 
   def self.convert_from_srt(srt_file, output=nil)
-    if !::File.exists?(srt_file)
+    if !::File.exist?(srt_file)
       raise InputError, "SRT file not found"
     end
 

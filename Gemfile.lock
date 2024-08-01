@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    webvtt-ruby (0.3.0)
+    webvtt-ruby (0.3.3)
 
 GEM
   remote: https://rubygems.org/
@@ -16,4 +16,4 @@ DEPENDENCIES
   webvtt-ruby!
 
 BUNDLED WITH
-   1.10.2
+   2.3.7

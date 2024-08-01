@@ -3,7 +3,7 @@ module WebVTT
     attr_reader :path, :filename
 
     def initialize(webvtt_file)
-      if !::File.exists?(webvtt_file)
+      if !::File.exist?(webvtt_file)
         raise InputError, "WebVTT file not found"
       end
 
