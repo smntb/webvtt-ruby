@@ -2,9 +2,9 @@ module WebVTT
   class Annotation
     attr_reader :references, :annotations, :text, :metadata
 
-    ANNOTATION_REGEX = %r(<c\.\d+>[^<]+</c>).freeze
-    METADATA_REGEX = /annotation set (\w+:\s.+)\n/i.freeze
-    REFERENCES_REGEX = %r(<annotation ref="\d+">.+</annotation>\n).freeze
+    ANNOTATION_REGEX = %r(<c\.\d+>[^<]+</c>)
+    METADATA_REGEX = /annotation set (\w+:\s.+)\n/i
+    REFERENCES_REGEX = %r(<annotation ref="\d+" [^>]*>.*?</annotation>\n?)
 
     def initialize(content)
       @content = content
@@ -36,9 +36,15 @@ module WebVTT
         text = sanitize(annotation)
         start_index = strip_tags(@text).index(text)
         end_index = start_index + text.length
-        annotation_ref = parse_annotation_reference(annotation)
+        annotation_data = parse_annotation_reference(annotation)
 
-        { text: text, start: start_index, end: end_index, annotation: annotation_ref }
+        {
+          text: text,
+          start: start_index,
+          end: end_index,
+          annotation: annotation_data[:content] || annotation_data,
+          attributes: annotation_data[:attributes] || {}
+        }
       end
     end
 
@@ -51,8 +57,33 @@ module WebVTT
     end
 
     def parse_annotation_reference(annotation)
-      ref_id = annotation.match(%r((?<=<c\.)\d+(?=>)))
-      @references.match(%r(<annotation ref="#{ref_id}">(.+)<\/annotation>\n))[1]
+      ref_id = annotation.match(/(?<=<c\.)\d+(?=>)/)
+      annotation_match = @references.match(%r(<annotation ref="#{ref_id}"[^>]*>(.*?)<\/annotation>))
+      return {} unless annotation_match
+
+      # Extract the content inside the annotation tags
+      content = annotation_match[1]
+
+      # Extract all attributes from the annotation tag
+      attributes = parse_annotation_attributes(ref_id)
+
+      # Return both content and attributes
+      { content: content, attributes: attributes }
+    end
+
+    def parse_annotation_attributes(ref_id)
+      annotation_match = @references.match(/<annotation ref="#{ref_id}"([^>]*)>/)
+      return {} unless annotation_match
+
+      attributes_string = annotation_match[1]
+      attributes = {}
+
+      # Parse key="value" pairs from the attributes string
+      attributes_string.scan(/(\w+)="([^"]*)"/) do |key, value|
+        attributes[key] = value
+      end
+
+      attributes
     end
   end
 end
